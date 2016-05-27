@@ -56,7 +56,7 @@
 #
 
 RULE ThreadMonitor trace create
-CLASS ^java.lang.Thread
+CLASS java.lang.Thread
 METHOD <init>
 HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
 AT EXIT
@@ -140,4 +140,38 @@ HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
 AT EXIT
 IF TRUE
 do writeAllEventsToFile("/tmp/thread-events.txt")
+ENDRULE
+
+# A rule to trigger a flush of the events on System.exit
+RULE write ThreadHistoryMonitorHelper to a file manu
+CLASS java.lang.System
+METHOD exit
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF TRUE
+do writeAllEventsToFile("/tmp/thread-system-exit.txt")
+ENDRULE
+
+######################################################
+############################ MANU specific ###########
+########################## TO DELETE before merge ####
+######################################################
+# A rule to trigger a flush of the events after the server startup msg
+RULE create counter embeddedmanu
+CLASS EmbeddedManu
+METHOD execute
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF createCounter("EmbeddedManu")
+DO System.out.println("Created counter EmbeddedManu")
+ENDRULE
+
+# A rule to trigger a flush of the events after the server startup msg
+RULE write ThreadHistoryMonitorHelper to a file embeddedmanu
+CLASS EmbeddedManu
+METHOD execute
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT EXIT
+IF TRUE
+do writeAllEventsToFile("/tmp/thread-embedded-execute-" + incrementCounter("EmbeddedManu") + ".txt")
 ENDRULE

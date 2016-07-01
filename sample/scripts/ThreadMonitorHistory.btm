@@ -175,3 +175,77 @@ AT EXIT
 IF TRUE
 do writeAllEventsToFile("/tmp/thread-embedded-execute-" + incrementCounter("EmbeddedManu") + ".txt")
 ENDRULE
+
+
+
+RULE create counter after junit
+INTERFACE TestRunnerAdaptor
+METHOD after
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF createCounter("JunitCounter")
+DO System.out.println("Created counter JunitCounter")
+ENDRULE
+
+RULE write ThreadHistoryMonitorHelper to an after
+INTERFACE TestRunnerAdaptor
+METHOD after
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT EXIT
+IF TRUE
+do writeAllEventsToFile("/tmp/junit-after-execute-" + incrementCounter("JunitCounter") + ".txt")
+ENDRULE
+
+RULE create counter before junit
+INTERFACE TestRunnerAdaptor
+METHOD <init>
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF createCounter("JunitBeforeCounter")
+DO System.out.println("Created counter JunitBeforeCounter")
+ENDRULE
+
+RULE write ThreadHistoryMonitorHelper to an before
+INTERFACE TestRunnerAdaptor
+METHOD before
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF TRUE
+do writeAllEventsToFile("/tmp/junit-before-execute-" + incrementCounter("JunitBeforeCounter") + ".txt")
+ENDRULE
+
+RULE create counter afterclass junit
+INTERFACE TestRunnerAdaptor
+METHOD afterClass
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF createCounter("JunitCounterClass")
+DO System.out.println("Created counter JunitCounterClass")
+ENDRULE
+
+RULE write ThreadHistoryMonitorHelper to a afterclass
+INTERFACE TestRunnerAdaptor
+METHOD afterClass
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT EXIT
+IF TRUE
+do writeAllEventsToFile("/tmp/junit-afterclass-execute-" + incrementCounter("JunitCounterClass") + ".txt")
+ENDRULE
+
+RULE create counter beforeclass junit
+INTERFACE TestRunnerAdaptor
+METHOD <init>
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF createCounter("JunitCounterBeforeClass")
+DO System.out.println("Created counter JunitCounterBeforeClass")
+ENDRULE
+
+RULE write ThreadHistoryMonitorHelper to a beforeclass
+INTERFACE TestRunnerAdaptor
+METHOD beforeClass
+HELPER org.jboss.byteman.sample.helper.ThreadHistoryMonitorHelper
+AT ENTRY
+IF TRUE
+do writeAllEventsToFile("/tmp/junit-beforeclass-execute-" + incrementCounter("JunitCounterBeforeClass") + ".txt")
+ENDRULE

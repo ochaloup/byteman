@@ -49,17 +49,10 @@ package org.jboss.byteman.contrib.dtest;
  *
  * @author Jonathan Halliday (jonathan.halliday@redhat.com) 2010-05
  */
-public class RuleBuilder
-{
-    public static void main(String[] args) {
-        RuleBuilder rb = new RuleBuilder("myRule");
-        rb.onClass("org.jboss.byteman.ExampleClass")
-          .inMethod("doInterestingStuff")
-          .atEntry()
-          .whenTrue()
-          .doAction("myAction()");
-        System.out.println(rb);
-    }
+public class RuleBuilder {
+    private static final String LINEBREAK = String.format("%n");
+
+    private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
 
     private String ruleName;
     private String className;
@@ -67,6 +60,7 @@ public class RuleBuilder
     private String methodName;
     private String helperName;
     private String atClause = "ENTRY";
+    private String bindClause;
     private String ifClause = "true";
     private String doClause;
 
@@ -90,15 +84,22 @@ public class RuleBuilder
         return onSpecifier(className, true);        
     }
 
-    private RuleBuilder onSpecifier(String className, boolean isInterface) {
-        this.className = className;
-        this.isInterface = isInterface;
-        return this;
-    }
-
     public RuleBuilder inMethod(String methodName) {
         this.methodName = methodName;
         return this;
+    }
+
+    public RuleBuilder inMethod(String methodName, String... args) {
+        this.methodName = methodName + "(" + stringJoin(",", args) + ")";
+        return this;
+    }
+
+    public RuleBuilder inConstructor() {
+        return inMethod(CONSTRUCTOR_METHOD_NAME);
+    }
+
+    public RuleBuilder inConstructor(String... args) {
+        return inMethod(CONSTRUCTOR_METHOD_NAME, args);
     }
 
     public RuleBuilder usingHelper(Class helperClass) {
@@ -144,12 +145,25 @@ public class RuleBuilder
         return when(""+when);
     }
 
+    public RuleBuilder bind(String bindClause) {
+        this.bindClause = bindClause;
+        return this;
+    }
+
     public RuleBuilder doAction(String action) {
         doClause = action;
         return this;
     }
 
-    private static String LINEBREAK = "\n";
+    public RuleBuilder appendDoAction(String action) {
+        if(doClause == null) {
+            doAction(action);
+        } else {
+            if(!doClause.trim().endsWith(";")) doClause += ";";
+            doClause += action;
+        }
+        return this;
+    }
 
     @Override
     public String toString() {
@@ -181,7 +195,11 @@ public class RuleBuilder
         stringBuilder.append(atClause);
         stringBuilder.append(LINEBREAK);
 
-        // bind
+        if(bindClause != null) {
+            stringBuilder.append("BIND ");
+            stringBuilder.append(bindClause);
+            stringBuilder.append(LINEBREAK);
+        }
 
         stringBuilder.append("IF ");
         stringBuilder.append(ifClause);
@@ -195,5 +213,27 @@ public class RuleBuilder
         stringBuilder.append(LINEBREAK);
 
         return stringBuilder.toString();
+    }
+
+
+    private RuleBuilder onSpecifier(String className, boolean isInterface) {
+        this.className = className;
+        this.isInterface = isInterface;
+        return this;
+    }
+
+    private String stringJoin(String join, String... strings) {
+        if (strings == null || strings.length == 0) {
+            return "";
+        } else if (strings.length == 1) {
+            return strings[0];
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append(strings[0]);
+            for (int i = 1; i < strings.length; i++) {
+                sb.append(join).append(strings[i]);
+            }
+            return sb.toString();
+        }
     }
 }

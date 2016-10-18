@@ -79,11 +79,11 @@ public class InstrumentorTest {
     public void ruleCrashAtMethodEntry() throws Exception {
         File ruleFile = tmpDir.newFile("crashAtMethodEntry.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         instrumentor.crashAtMethodEntry(clazzName, method);
         
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -91,21 +91,21 @@ public class InstrumentorTest {
                 .ifTrue()
                 .doo("killJVM")
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }
-    
+
     @Test
     public void ruleCrashAtMethod() throws Exception {
         File ruleFile = tmpDir.newFile("crashAtMethod.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         String atLine = "LINE 123";
         instrumentor.crashAtMethod(clazzName, method, atLine);
-        
+
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -113,21 +113,21 @@ public class InstrumentorTest {
                 .ifTrue()
                 .doo("killJVM")
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }
-    
+
     @Test
     public void ruleInjectOnCall() throws Exception {
         File ruleFile = tmpDir.newFile("injectOnCall.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         String action = "debug(\"here\");";
         instrumentor.injectOnCall(clazz, method, action);
-        
+
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -135,21 +135,21 @@ public class InstrumentorTest {
                 .ifTrue()
                 .doo(action)
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }
-    
+
     @Test
     public void ruleInjectOnExit() throws Exception {
         File ruleFile = tmpDir.newFile("injectOnExit.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         String action = "debug(\"here\");";
         instrumentor.injectOnExit(clazz, method, action);
-        
+
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -157,23 +157,23 @@ public class InstrumentorTest {
                 .ifTrue()
                 .doo(action)
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }
-    
+
     @Test
     public void ruleInjectOnMethod() throws Exception {
         File ruleFile = tmpDir.newFile("injectOnMethod.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         String at = "AFTER READ i";
         String action = "debug(\"here\");";
         String iff = "recovered";
         instrumentor.injectOnMethod(clazz, method, iff, action, at);
-        
+
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -181,22 +181,22 @@ public class InstrumentorTest {
                 .iff(iff)
                 .doo(action)
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }
-    
+
     @Test
     public void ruleInjectFault() throws Exception {
         File ruleFile = tmpDir.newFile("injectFault.btm");
         instrumentor.setRedirectedSubmissionsFile(ruleFile);
-        
+
         Class exception = NullPointerException.class;
         Object[] args = {"hello"};
         instrumentor.injectFault(clazz, method, exception, args);
         
         String ruleString = readFileToString(ruleFile);
-        
+
         Pattern pattern = new RegexRuleBuilder()
                 .clazz(clazzName)
                 .method(method)
@@ -204,7 +204,7 @@ public class InstrumentorTest {
                 .ifTrue()
                 .doo("throw new " + exception.getName() + "(\"" + args[0])
                 .build();
-        
+
         Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
                 pattern.matcher(ruleString).matches());
     }

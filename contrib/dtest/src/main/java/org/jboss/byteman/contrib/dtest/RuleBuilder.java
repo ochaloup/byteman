@@ -52,17 +52,20 @@ package org.jboss.byteman.contrib.dtest;
 public class RuleBuilder {
     private static final String LINEBREAK = String.format("%n");
 
-    private static final String CONSTRUCTOR_METHOD_NAME = "<init>";
+    private static final String CONSTRUCTOR_METHOD = "<init>";
+    private static final String CLASS_CONSTRUCTOR = "<clinit>";
 
     private String ruleName;
     private String className;
     private boolean isInterface;
     private String methodName;
     private String helperName;
-    private String atClause = "ENTRY";
+    private String whereClause = "AT ENTRY";
     private String bindClause;
     private String ifClause = "true";
     private String doClause;
+    private String importClause;
+    private String compileClause;
 
     public RuleBuilder(String ruleName) {
         this.ruleName = ruleName;
@@ -95,11 +98,19 @@ public class RuleBuilder {
     }
 
     public RuleBuilder inConstructor() {
-        return inMethod(CONSTRUCTOR_METHOD_NAME);
+        return inMethod(CONSTRUCTOR_METHOD);
     }
 
     public RuleBuilder inConstructor(String... args) {
-        return inMethod(CONSTRUCTOR_METHOD_NAME, args);
+        return inMethod(CONSTRUCTOR_METHOD, args);
+    }
+
+    public RuleBuilder inClassInit() {
+        return inMethod(CLASS_CONSTRUCTOR);
+    }
+
+    public RuleBuilder inClassInit(String... args) {
+        return inMethod(CLASS_CONSTRUCTOR, args);
     }
 
     public RuleBuilder usingHelper(Class helperClass) {
@@ -111,8 +122,8 @@ public class RuleBuilder {
         return this;
     }
 
-    public RuleBuilder at(String at) {
-        atClause = at;
+    public RuleBuilder where(String where) {
+        whereClause = where;
         return this;
     }
 
@@ -125,7 +136,23 @@ public class RuleBuilder {
     }
 
     public RuleBuilder atLine(int line) {
-        return at("LINE "+line);
+        return at("LINE " + line);
+    }
+
+    public RuleBuilder atThrow() {
+        return at("THROW ALL");
+    }
+
+    public RuleBuilder atThrow(int count) {
+        return at("THROW " + count);
+    }
+
+    public RuleBuilder atExceptionExit() {
+        return at("EXCEPTION EXIT");
+    }
+
+    public RuleBuilder at(String at) {
+        return where("AT " + at);
     }
 
     public RuleBuilder when(String condition) {
@@ -142,31 +169,50 @@ public class RuleBuilder {
     }
 
     public RuleBuilder when(boolean when) {
-        return when(""+when);
+        return when("" + when);
     }
 
-    public RuleBuilder bind(String bindClause) {
-        this.bindClause = bindClause;
-        return this;
-    }
-
-    public RuleBuilder doAction(String action) {
-        doClause = action;
-        return this;
-    }
-
-    public RuleBuilder appendDoAction(String action) {
-        if(doClause == null) {
-            doAction(action);
-        } else {
-            if(!doClause.trim().endsWith(";")) doClause += ";";
-            doClause += action;
+    public RuleBuilder bind(String... bindClauses) {
+        if(this.bindClause == null) this.bindClause = "";
+        for(String bindClause: bindClauses) {
+            if(!this.bindClause.isEmpty() && !this.bindClause.trim().endsWith(";")) {
+                this.bindClause += ";";
+            }
+            this.bindClause += LINEBREAK + bindClause;
         }
         return this;
     }
 
-    @Override
-    public String toString() {
+    public RuleBuilder doAction(String... actions) {
+        if(this.doClause == null) this.doClause = "";
+        for(String action: actions) {
+            if(!this.doClause.isEmpty() && !this.doClause.trim().endsWith(";")) {
+                doClause += ";";
+            }
+            doClause += LINEBREAK + action;
+        }
+        return this;
+    }
+
+    public RuleBuilder addImport(String... imports) {
+        if(this.importClause == null) this.importClause = "";
+        for(String importString: imports) {
+            importClause += "IMPORT " + importString + LINEBREAK;
+        }
+        return this;
+    }
+    
+    public RuleBuilder compile() {
+        this.compileClause = "COMPILE";
+        return this;
+    }
+    
+    public RuleBuilder nocompile() {
+        this.compileClause = "NOCOMPILE";
+        return this;
+    }
+
+    public String build() {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("RULE ");
@@ -191,12 +237,20 @@ public class RuleBuilder {
             stringBuilder.append(LINEBREAK);
         }
 
-        stringBuilder.append("AT ");
-        stringBuilder.append(atClause);
+        if(importClause != null) {
+            stringBuilder.append(importClause);
+        }
+
+        if(compileClause != null) {
+            stringBuilder.append(compileClause);
+            stringBuilder.append(LINEBREAK);
+        }
+
+        stringBuilder.append(whereClause);
         stringBuilder.append(LINEBREAK);
 
         if(bindClause != null) {
-            stringBuilder.append("BIND ");
+            stringBuilder.append("BIND");
             stringBuilder.append(bindClause);
             stringBuilder.append(LINEBREAK);
         }
@@ -205,7 +259,7 @@ public class RuleBuilder {
         stringBuilder.append(ifClause);
         stringBuilder.append(LINEBREAK);
 
-        stringBuilder.append("DO ");
+        stringBuilder.append("DO");
         stringBuilder.append(doClause);
         stringBuilder.append(LINEBREAK);
 
@@ -213,6 +267,11 @@ public class RuleBuilder {
         stringBuilder.append(LINEBREAK);
 
         return stringBuilder.toString();
+    }
+
+    @Override
+    public String toString() {
+        return build();
     }
 
 

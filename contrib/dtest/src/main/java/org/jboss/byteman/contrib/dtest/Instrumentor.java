@@ -115,10 +115,10 @@ public class Instrumentor
         Set<String> methodNamesToInstrument = new HashSet<String>();
 
         for(Method method : clazz.getDeclaredMethods()) {
-        	String declaredMethodName = method.getName();
-        	if(methodNames == null || methodNames.contains(declaredMethodName)) {
-        		methodNamesToInstrument.add(declaredMethodName);
-        	}
+            String declaredMethodName = method.getName();
+            if(methodNames == null || methodNames.contains(declaredMethodName)) {
+                methodNamesToInstrument.add(declaredMethodName);
+            }
         }
 
         return instrumentClass(className, methodNamesToInstrument);
@@ -136,9 +136,9 @@ public class Instrumentor
      */
     public InstrumentedClass instrumentClass(String className, Set<String> methodNames) throws Exception
     {
-    	if(methodNames == null) {
-    		throw new NullPointerException("methodNames");
-    	}
+        if(methodNames == null) {
+            throw new NullPointerException("methodNames");
+        }
 
         Set<String> instrumentedMethods = new HashSet<String>();
 
@@ -251,13 +251,13 @@ public class Instrumentor
      * @param clazz The Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
      * @param action The action that should take place upon invocation of the method.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @param condition the rule condition
      * @throws Exception in case of failure.
      */
-    public void injectOnMethod(Class clazz, String methodName, String condition, String action, String where) throws Exception {
-    	injectOnMethod(clazz.getCanonicalName(), methodName, condition, action, where);
-	}
+    public void injectOnMethod(Class clazz, String methodName, String condition, String action, String atInjection) throws Exception {
+        injectOnMethod(clazz.getCanonicalName(), methodName, condition, action, atInjection);
+    }
 
     /**
      * Inject an action to take place at a given point within the specified class.method
@@ -265,11 +265,64 @@ public class Instrumentor
      * @param className The name of the Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
      * @param action The action that should take place upon invocation of the method.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @param condition the rule condition
      * @throws Exception in case of failure.
      */
-    public void injectOnMethod(String className, String methodName, String condition, String action, String where) throws Exception
+    public void injectOnMethod(String className, String methodName, String condition, String action, String atInjection) throws Exception
+    {
+        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+atInjection;
+
+        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        if(isInterface(className)) {
+            ruleBuilder.onInterface(className);
+        } else {
+            ruleBuilder.onClass(className);
+        }
+        ruleBuilder.inMethod(methodName).at(atInjection);
+        ruleBuilder.usingHelper(BytemanTestHelper.class);
+        ruleBuilder.when(condition).doAction(action);
+
+        String ruleText = ruleBuilder.toString();
+        installScript("onCall"+className+"."+methodName+"."+atInjection, ruleText);
+    }
+
+
+    /**
+     * <p>
+     * Inject an action to take place at a given point within the specified class.method
+     * <p>
+     * Difference to {@link #injectOnMethod(Class, String, String, String, String)} resides at
+     * injection definition. The prior one expects "AT" injection point. This one expects the whole
+     * location qualifier.
+     *
+     * @param clazz The Class in which the injection point resides.
+     * @param methodName The method which should be intercepted.
+     * @param action The action that should take place upon invocation of the method.
+     * @param where the injection definition e.g. "AT ENTRY" or "AFTER SYNCHRONIZATION".
+     * @param condition the rule condition
+     * @throws Exception in case of failure.
+     */
+    public void injectOnMethodWhere(Class clazz, String methodName, String condition, String action, String where) throws Exception {
+        injectOnMethodWhere(clazz.getCanonicalName(), methodName, condition, action, where);
+    }
+
+    /**
+     * <p>
+     * Inject an action to take place at a given point within the specified class.method
+     * <p>
+     * Difference to {@link #injectOnMethod(String, String, String, String, String)} resides at
+     * injection definition. The prior one expects "AT" injection point. This one expects the whole
+     * location qualifier.
+     *
+     * @param className The name of the Class in which the injection point resides.
+     * @param methodName The method which should be intercepted.
+     * @param action The action that should take place upon invocation of the method.
+     * @param where the injection definition e.g. "AT ENTRY" or "AFTER SYNCHRONIZATION".
+     * @param condition the rule condition
+     * @throws Exception in case of failure.
+     */
+    public void injectOnMethodWhere(String className, String methodName, String condition, String action, String where) throws Exception
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+where;
 
@@ -279,7 +332,7 @@ public class Instrumentor
         } else {
             ruleBuilder.onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(where);
+        ruleBuilder.inMethod(methodName).where(where);
         ruleBuilder.usingHelper(BytemanTestHelper.class);
         ruleBuilder.when(condition).doAction(action);
 
@@ -391,12 +444,12 @@ public class Instrumentor
      *
      * @param className The name of the Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @throws Exception in case of failure.
      */
-    public void crashAtMethod(String className, String methodName, String where) throws Exception
+    public void crashAtMethod(String className, String methodName, String atInjection) throws Exception
     {
-        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_crashat"+where;
+        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_crashat"+atInjection;
 
         String action = "debug(\"killing JVM\"), killJVM()";
 
@@ -406,11 +459,11 @@ public class Instrumentor
         } else {
             ruleBuilder.onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(where);
+        ruleBuilder.inMethod(methodName).at(atInjection);
         ruleBuilder.usingHelper(BytemanTestHelper.class);
         ruleBuilder.whenTrue().doAction(action);
         
-        installScript("crash"+className+"."+methodName+"."+where, ruleBuilder.toString());
+        installScript("crash"+className+"."+methodName+"."+atInjection, ruleBuilder.toString());
     }
 
     /**

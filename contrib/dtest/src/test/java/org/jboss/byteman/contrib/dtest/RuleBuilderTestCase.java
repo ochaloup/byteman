@@ -149,7 +149,7 @@ public class RuleBuilderTestCase {
             .atEntry()
             .nocompile()
             .addImport("javax.transaction.api")
-            .when(true)
+            .whenTrue()
             .doAction("org.my.Logger.log(runnableKlazz, System.currentTimeMillis())")
             .build();
 

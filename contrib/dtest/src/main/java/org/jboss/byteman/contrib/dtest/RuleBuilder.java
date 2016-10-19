@@ -43,7 +43,8 @@ package org.jboss.byteman.contrib.dtest;
  *   METHOD doInterestingStuffv
  *   AT ENTRY<br>
  *   IF true<br>
- *   DO myAction()<br>
+ *   DO<br>
+ *   myAction()<br>
  *   ENDRULE
  * </code>
  *
@@ -67,107 +68,279 @@ public class RuleBuilder {
     private String importClause;
     private String compileClause;
 
+    /**
+     * Rule builder initialization.
+     *
+     * @param ruleName  name of rule is demanded information
+     */
     public RuleBuilder(String ruleName) {
         this.ruleName = ruleName;
     }
 
+    /**
+     * Class that rule event is associated to.
+     *
+     * @param clazz  class as target of rule injection
+     * @return this, for having fluent api
+     */
     public RuleBuilder onClass(Class clazz) {
         return onSpecifier(clazz.getCanonicalName(), false);
     }
 
+    /**
+     * Class name that rule event is associated to.
+     *
+     * @param className  class name as target of rule injection
+     * @return this, for having fluent api
+     */
     public RuleBuilder onClass(String className) {
         return onSpecifier(className, false);
     }
 
+    /**
+     * Interface class that rule event is associated to.
+     *
+     * @param clazz  interface class as target of rule injection
+     * @return this, for having fluent api
+     */
     public RuleBuilder onInterface(Class clazz) {
         return onSpecifier(clazz.getCanonicalName(), true);
     }
 
+    /**
+     * Interface class name that rule event is associated to.
+     *
+     * @param className interface class name as target of rule injection
+     * @return this, for having fluent api
+     */
     public RuleBuilder onInterface(String className) {
         return onSpecifier(className, true);        
     }
 
+    /**
+     * Defining method where the rule is injected to.
+     *
+     * @param methodName  method name for rule injection
+     * @return this, for having fluent api
+     */
     public RuleBuilder inMethod(String methodName) {
         this.methodName = methodName;
         return this;
     }
 
-    public RuleBuilder inMethod(String methodName, String... args) {
-        this.methodName = methodName + "(" + stringJoin(",", args) + ")";
+    /**
+     * <p>
+     * Defining method specified by argument types where the rule is injected to.
+     * <p>
+     * Example:
+     * <p>
+     * <code>
+     *   new RuleBuilder("rule name")<br>
+     *     .onInterface("javax.transaction.xa.XAResource")<br>
+     *     .inMethod("commit", "Xid" , "boolean")<br>
+     *     ...
+     * </code>
+     *
+     * @param methodName  method name for rule injection
+     * @param argTypes  method argument types to closer specify which method
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder inMethod(String methodName, String... argTypes) {
+        this.methodName = methodName + "(" + stringJoin(",", argTypes) + ")";
         return this;
     }
 
+    /**
+     * Defining constructor, special method type,
+     * as place for rule injection.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder inConstructor() {
         return inMethod(CONSTRUCTOR_METHOD);
     }
 
-    public RuleBuilder inConstructor(String... args) {
-        return inMethod(CONSTRUCTOR_METHOD, args);
+    /**
+     * Defining constructor, special method type,
+     * as place for rule injection.<br>
+     * The constructor is closer specified by its arguments.
+     *
+     * @param argTypes  method argument types to closer specify which method
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder inConstructor(String... argTypes) {
+        return inMethod(CONSTRUCTOR_METHOD, argTypes);
     }
 
-    public RuleBuilder inClassInit() {
+    /**
+     * Defining class initialization method as place for rule injection.
+     *
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder inClassInitMethod() {
         return inMethod(CLASS_CONSTRUCTOR);
     }
 
-    public RuleBuilder inClassInit(String... args) {
-        return inMethod(CLASS_CONSTRUCTOR, args);
+    /**
+     * Defining class initialization method as place for rule injection.
+     *
+     * @param argTypes  method argument types to closer specify which method
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder inClassInitMethod(String... argTypes) {
+        return inMethod(CLASS_CONSTRUCTOR, argTypes);
     }
 
+    /**
+     * Byteman helper class to be used in rule definition.
+     *
+     * @param helperClass  byteman helper class
+     * @return  this, for having fluent api
+     */
     public RuleBuilder usingHelper(Class helperClass) {
         return usingHelper(helperClass.getCanonicalName());
     }
 
-    public RuleBuilder usingHelper(String helperName) {
-        this.helperName = helperName;
+    /**
+     * Class name of Byteman helper class.
+     *
+     * @param helperClassName  byteman helper class name
+     * @return  this, for having fluent api
+     */
+
+    public RuleBuilder usingHelper(String helperClassName) {
+        this.helperName = helperClassName;
         return this;
     }
 
+    /**
+     * Location specifier definition.<br>
+     * Defined string is directly used in rule definition.
+     *
+     * @param where  location specifier
+     * @return  this, for having fluent api
+     */
     public RuleBuilder where(String where) {
         whereClause = where;
         return this;
     }
 
+    /**
+     * Rule is invoked at entry point of method.<br>
+     * Location specifier is set as <code>AT ENTRY</code>.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder atEntry() {
         return at("ENTRY");
     }
 
+    /**
+     * Rule is invoked at exit point of method.<br>
+     * Location specifier is set as <code>AT EXIT</code>.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder atExit() {
         return at("EXIT");
     }
 
+    /**
+     * Rule is invoked at specific line of code
+     * within the method.<br>
+     * Location specifier is set as <code>AT LINE &lt;line&gt;</code>.
+     *
+     * @param line  line number to be rule injection point
+     * @return  this, for having fluent api
+     */
     public RuleBuilder atLine(int line) {
         return at("LINE " + line);
     }
 
+    /**
+     * Identifies a throw operation within the trigger method.<br>
+     * Location specifier is set as <code>AT THROW ALL</code>.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder atThrow() {
         return at("THROW ALL");
     }
 
-    public RuleBuilder atThrow(int count) {
-        return at("THROW " + count);
+    /**
+     * Identifies a throw operation within the trigger method,
+     * specified with count as Nth textual occurrence of a throw
+     * inside of the method defining only that occurrence to trigger
+     * execution of the rule.<br>
+     * Location specifier is set as <code>AT THROW &lt;occurencePosition&gt;</code>.
+     *
+     * @param occurencePosition  which Nth textual occurrence of a throw triggers the rule
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder atThrow(int occurencePosition) {
+        return at("THROW " + occurencePosition);
     }
 
+    /**
+     * Identifies the point where a method returns control back to its caller via
+     * unhandled exceptional control flow.<br>
+     * Location specifier is set as <code>AT EXCEPTION EXIT</code>.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder atExceptionExit() {
         return at("EXCEPTION EXIT");
     }
 
+    /**
+     * Location specifier definition prefixed with <code>AT</code>.<br>
+     *
+     * @param at  location specifier complement of <code>AT</code>
+     * @return  this, for having fluent api
+     */
     public RuleBuilder at(String at) {
         return where("AT " + at);
     }
 
+    /**
+     * Rule condition when rule will be executed.<br>
+     * Defined string is directly used in rule definition.
+     *
+     * @param condition  rule condition string that is used for the rule
+     * @return  this, for having fluent api
+     */
     public RuleBuilder when(String condition) {
         ifClause = condition;
         return this;
     }
 
+    /**
+     * Condition ensuring that rule will be executed.<br>
+     * Rule condition is set as <code>IF true</code>.<br>
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder whenTrue() {
         return when("true");
     }
 
+    /**
+     * Condition ensuring that rule won't be executed.<br>
+     * Rule condition is set as <code>IF false</code>.<br>
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder whenFalse() {
         return when("false");
     }
 
+    /**
+     * Rule condition which defines if rule will be executed (true)
+     * or won't be (false).
+     * Rule condition is set as <code>IF &lt;when&gt;</code>.<br>
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder when(boolean when) {
         return when("" + when);
     }
@@ -194,6 +367,15 @@ public class RuleBuilder {
         return this;
     }
 
+    /**
+     * Adding module import definition to the rule.
+     * For module import functionality works you need to use parameter
+     * <code>-javaagent modules:</code>. The only provided implementation class
+     * which is to manage module imports is
+     * <code>org.jboss.byteman.modules.jbossmodules.JbossModulesSystem</code>
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder addImport(String... imports) {
         if(this.importClause == null) this.importClause = "";
         for(String importString: imports) {
@@ -201,17 +383,37 @@ public class RuleBuilder {
         }
         return this;
     }
-    
+
+    /**
+     * Defines rule for being compiled.<br>
+     * Default behaviour is to use the interpreter.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder compile() {
         this.compileClause = "COMPILE";
         return this;
     }
-    
+
+    /**
+     * Defines rule for not being compiled.<br>
+     * Default behaviour is to use the interpreter
+     * but byteman system property could be used to change
+     * the default behaviour for rules being compiled every time
+     * then this settings could be useful.
+     *
+     * @return  this, for having fluent api
+     */
     public RuleBuilder nocompile() {
         this.compileClause = "NOCOMPILE";
         return this;
     }
 
+    /**
+     * Builds the rule and returns its representation as string.
+     *
+     * @return the rule as a string
+     */
     public String build() {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -269,11 +471,20 @@ public class RuleBuilder {
         return stringBuilder.toString();
     }
 
+    /**
+     * Builds the rule and returns its representation as string.<br>
+     * This has the same functionality as method {@link #build()}. 
+     *
+     * @return the rule as a string
+     */
     @Override
     public String toString() {
         return build();
     }
 
+    String getRuleName() {
+        return ruleName;
+    }
 
     private RuleBuilder onSpecifier(String className, boolean isInterface) {
         this.className = className;

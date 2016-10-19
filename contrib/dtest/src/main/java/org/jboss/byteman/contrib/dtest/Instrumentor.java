@@ -508,6 +508,16 @@ public class Instrumentor
     }
 
     /**
+     * Installing rule based on definition available by building {@link RuleBuilder}.
+     *
+     * @param builder  rule builder with rule definition to be installed as a script
+     * @throws Exception  in case of failure
+     */
+    public void installRule(RuleBuilder builder) throws Exception {
+        installScript(builder.getRuleName(), builder.build());
+    }
+
+    /**
      * Write the given text to the end of the file.
      *
      * @param file a file name.

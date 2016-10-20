@@ -115,10 +115,10 @@ public class Instrumentor
         Set<String> methodNamesToInstrument = new HashSet<String>();
 
         for(Method method : clazz.getDeclaredMethods()) {
-        	String declaredMethodName = method.getName();
-        	if(methodNames == null || methodNames.contains(declaredMethodName)) {
-        		methodNamesToInstrument.add(declaredMethodName);
-        	}
+            String declaredMethodName = method.getName();
+            if(methodNames == null || methodNames.contains(declaredMethodName)) {
+                methodNamesToInstrument.add(declaredMethodName);
+            }
         }
 
         return instrumentClass(className, methodNamesToInstrument);
@@ -136,9 +136,9 @@ public class Instrumentor
      */
     public InstrumentedClass instrumentClass(String className, Set<String> methodNames) throws Exception
     {
-    	if(methodNames == null) {
-    		throw new NullPointerException("methodNames");
-    	}
+        if(methodNames == null) {
+            throw new NullPointerException("methodNames");
+        }
 
         Set<String> instrumentedMethods = new HashSet<String>();
 
@@ -251,13 +251,13 @@ public class Instrumentor
      * @param clazz The Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
      * @param action The action that should take place upon invocation of the method.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @param condition the rule condition
      * @throws Exception in case of failure.
      */
-    public void injectOnMethod(Class clazz, String methodName, String condition, String action, String where) throws Exception {
-    	injectOnMethod(clazz.getCanonicalName(), methodName, condition, action, where);
-	}
+    public void injectOnMethod(Class clazz, String methodName, String condition, String action, String atInjection) throws Exception {
+        injectOnMethod(clazz.getCanonicalName(), methodName, condition, action, atInjection);
+    }
 
     /**
      * Inject an action to take place at a given point within the specified class.method
@@ -265,11 +265,64 @@ public class Instrumentor
      * @param className The name of the Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
      * @param action The action that should take place upon invocation of the method.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @param condition the rule condition
      * @throws Exception in case of failure.
      */
-    public void injectOnMethod(String className, String methodName, String condition, String action, String where) throws Exception
+    public void injectOnMethod(String className, String methodName, String condition, String action, String atInjection) throws Exception
+    {
+        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+atInjection;
+
+        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        if(isInterface(className)) {
+            ruleBuilder.onInterface(className);
+        } else {
+            ruleBuilder.onClass(className);
+        }
+        ruleBuilder.inMethod(methodName).at(atInjection);
+        ruleBuilder.usingHelper(BytemanTestHelper.class);
+        ruleBuilder.when(condition).doAction(action);
+
+        String ruleText = ruleBuilder.toString();
+        installScript("onCall"+className+"."+methodName+"."+atInjection, ruleText);
+    }
+
+
+    /**
+     * <p>
+     * Inject an action to take place at a given point within the specified class.method
+     * <p>
+     * Difference to {@link #injectOnMethod(Class, String, String, String, String)} resides at
+     * injection definition. The prior one expects "AT" injection point. This one expects the whole
+     * location qualifier.
+     *
+     * @param clazz The Class in which the injection point resides.
+     * @param methodName The method which should be intercepted.
+     * @param action The action that should take place upon invocation of the method.
+     * @param where the injection definition e.g. "AT ENTRY" or "AFTER SYNCHRONIZATION".
+     * @param condition the rule condition
+     * @throws Exception in case of failure.
+     */
+    public void injectOnMethodWhere(Class clazz, String methodName, String condition, String action, String where) throws Exception {
+        injectOnMethodWhere(clazz.getCanonicalName(), methodName, condition, action, where);
+    }
+
+    /**
+     * <p>
+     * Inject an action to take place at a given point within the specified class.method
+     * <p>
+     * Difference to {@link #injectOnMethod(String, String, String, String, String)} resides at
+     * injection definition. The prior one expects "AT" injection point. This one expects the whole
+     * location qualifier.
+     *
+     * @param className The name of the Class in which the injection point resides.
+     * @param methodName The method which should be intercepted.
+     * @param action The action that should take place upon invocation of the method.
+     * @param where the injection definition e.g. "AT ENTRY" or "AFTER SYNCHRONIZATION".
+     * @param condition the rule condition
+     * @throws Exception in case of failure.
+     */
+    public void injectOnMethodWhere(String className, String methodName, String condition, String action, String where) throws Exception
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+where;
 
@@ -279,7 +332,7 @@ public class Instrumentor
         } else {
             ruleBuilder.onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(where);
+        ruleBuilder.inMethod(methodName).where(where);
         ruleBuilder.usingHelper(BytemanTestHelper.class);
         ruleBuilder.when(condition).doAction(action);
 
@@ -391,12 +444,12 @@ public class Instrumentor
      *
      * @param className The name of the Class in which the injection point resides.
      * @param methodName The method which should be intercepted.
-     * @param where the injection point e.g. "ENTRY".
+     * @param atInjection the injection point e.g. "ENTRY".
      * @throws Exception in case of failure.
      */
-    public void crashAtMethod(String className, String methodName, String where) throws Exception
+    public void crashAtMethod(String className, String methodName, String atInjection) throws Exception
     {
-        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_crashat"+where;
+        String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_crashat"+atInjection;
 
         String action = "debug(\"killing JVM\"), killJVM()";
 
@@ -406,11 +459,11 @@ public class Instrumentor
         } else {
             ruleBuilder.onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(where);
+        ruleBuilder.inMethod(methodName).at(atInjection);
         ruleBuilder.usingHelper(BytemanTestHelper.class);
         ruleBuilder.whenTrue().doAction(action);
         
-        installScript("crash"+className+"."+methodName+"."+where, ruleBuilder.toString());
+        installScript("crash"+className+"."+methodName+"."+atInjection, ruleBuilder.toString());
     }
 
     /**
@@ -422,9 +475,7 @@ public class Instrumentor
      * @param scriptString The text of the script i.e. one or more Rules.
      * @throws Exception in case of failure.
      */
-    public void installScript(String scriptName, String scriptString)
-            throws Exception
-    {
+    public void installScript(String scriptName, String scriptString) throws Exception {
         System.out.println("installing: "+scriptString);
 
         if(scriptString.length() > 0) {
@@ -452,6 +503,63 @@ public class Instrumentor
                 installedScripts.add(updatedScriptText);
             }
         }
+    }
+
+    /**
+     * Installing rule based on definition available by building {@link RuleBuilder}.
+     *
+     * @param builder  rule builder with a rule definition to be installed as script
+     * @return  name of script that rule was installed under
+     * @throws Exception  in case of failure
+     */
+    public String installRule(RuleBuilder builder) throws Exception {
+        String scriptName = builder.getRuleName();
+        installScript(scriptName, builder.build());
+        return scriptName;
+    }
+
+
+    /**
+     * Flush the local cache of scripts and proxies to remote instrumented classes.
+     * Useful to reset local state when a remote JVM is crashed and hence reset.
+     *
+     * @throws Exception in case of failure.
+     */
+    public void removeLocalState() throws Exception
+    {
+        for(String instrumentedClassName : instrumentedClasses.keySet())
+        {
+            unpublish(instrumentedClassName);
+        }
+        instrumentedClasses.clear();
+        installedScripts.clear();
+    }
+
+    /**
+     * Flush any instrumentation for the given class in the remote system and clean up the local cache.
+     *
+     * @throws Exception in case of failure.
+     */
+    public void removeAllInstrumentation() throws Exception
+    {
+        submit.deleteScripts(installedScripts);
+        removeLocalState();
+    }
+
+    /**
+     * Removing particular script from the remote byteman agent.
+     *
+     * @param scriptName  name of script that should be removed
+     * @throws Exception in case that script can't be removed
+     */
+    public void removeScript(String scriptName) throws Exception {
+        ScriptText script = findInstalledScript(scriptName);
+        if(script == null) {
+            throw new IllegalStateException("Script name " + scriptName + " can't be removed as "
+                    + "was not found in list of installed scripts");
+        }
+        submit.deleteScripts(Arrays.asList(script));
+        installedScripts.remove(script);
     }
 
     /**
@@ -501,33 +609,6 @@ public class Instrumentor
     }
 
     /**
-     * Flush the local cache of scripts and proxies to remote instrumented classes.
-     * Useful to reset local state when a remote JVM is crashed and hence reset.
-     *
-     * @throws Exception in case of failure.
-     */
-    public void removeLocalState() throws Exception
-    {
-        for(String instrumentedClassName : instrumentedClasses.keySet())
-        {
-            unpublish(instrumentedClassName);
-        }
-        instrumentedClasses.clear();
-        installedScripts.clear();
-    }
-
-    /**
-     * Flush any instrumentation for the given class in the remote system and clean up the local cache.
-     *
-     * @throws Exception in case of failure.
-     */
-    public void removeAllInstrumentation() throws Exception
-    {
-        submit.deleteScripts(installedScripts);
-        removeLocalState();
-    }
-
-    /**
      * Trying to load a class and if successful then check if class is interface.
      * If it's then returns true. In all other cases returns false.
      */
@@ -551,5 +632,16 @@ public class Instrumentor
         } else {
             return false;
         }
+    }
+
+    /**
+     * Looping through installed scripts and checking if scriptName
+     * is there. If so returns it otherwise returns null.
+     */
+    private ScriptText findInstalledScript(String scriptName) {
+        for(ScriptText installedScript: installedScripts) {
+            if(installedScript.getFileName().equals(scriptName)) return installedScript;
+        }
+        return null;
     }
 }

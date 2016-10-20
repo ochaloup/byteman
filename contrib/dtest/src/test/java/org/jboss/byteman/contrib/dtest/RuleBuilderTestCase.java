@@ -13,8 +13,7 @@ public class RuleBuilderTestCase {
             "METHOD commit%n" +
             "AT ENTRY%n" +
             "IF NOT flagged(\"commitFlag\")%n" +
-            "DO%n" +
-            "throw new javax.transaction.xa.XAResource(100)%n" +
+            "DO throw new javax.transaction.xa.XAResource(100)%n" +
             "ENDRULE%n");
 
         String rule = new RuleBuilder("basic rule")
@@ -35,20 +34,17 @@ public class RuleBuilderTestCase {
             "CLASS org.my.BoundedBuffer%n" +
             "METHOD <init>(int)%n" +
             "AT EXIT%n" +
-            "BIND%n" +
-            "buffer = $0;%n" +
+            "BIND buffer = $0;%n" +
             "size = $1%n" +
             "IF $1 < 100%n" +
-            "DO%n" +
-            "createCountDown(buffer, size - 1)%n" +
+            "DO createCountDown(buffer, size - 1)%n" +
             "ENDRULE%n");
 
         RuleBuilder builder = new RuleBuilder("bind rule")
             .onClass("org.my.BoundedBuffer")
             .inConstructor("int")
             .atExit()
-            .bind("buffer = $0")
-            .bind("size = $1")
+            .bind("buffer = $0", "size = $1")
             .when("$1 < 100")
             .doAction("createCountDown(buffer, size - 1)");
 
@@ -63,8 +59,7 @@ public class RuleBuilderTestCase {
             "METHOD State commit()%n" +
             "AT LINE 324%n" +
             "IF true%n" +
-            "DO%n" +
-            "traceStack(\"dump\", 20)%n" +
+            "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
         String builtRule = new RuleBuilder("commit with no arguments on wst11 coordinator engine")
@@ -86,8 +81,7 @@ public class RuleBuilderTestCase {
             "METHOD commit()%n" +
             "AT THROW ALL%n" +
             "IF true%n" +
-            "DO%n" +
-            "System.out.println(\"One ring\");%n" +
+            "DO System.out.println(\"One ring\");%n" +
             "System.out.println(\"rule them all\")%n" +
             "ENDRULE%n");
 
@@ -112,8 +106,7 @@ public class RuleBuilderTestCase {
             "METHOD commit%n" +
             "AT READ state%n" +
             "IF true%n" +
-            "DO%n" +
-            "debug(\"throwing wrong state\");%n" +
+            "DO debug(\"throwing wrong state\");%n" +
             "throw new WrongStateException()%n" +
             "ENDRULE%n");
 
@@ -122,8 +115,9 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .where("AT READ state")
             .when(true)
-            .doAction("debug(\"throwing wrong state\")")
-            .doAction("throw new WrongStateException()")
+            .doAction(
+                "debug(\"throwing wrong state\")",
+                "throw new WrongStateException()")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -139,8 +133,7 @@ public class RuleBuilderTestCase {
             "NOCOMPILE%n" +
             "AT ENTRY%n" +
             "IF true%n" +
-            "DO%n" +
-            "org.my.Logger.log(runnableKlazz, System.currentTimeMillis())%n" +
+            "DO org.my.Logger.log(runnableKlazz, System.currentTimeMillis())%n" +
             "ENDRULE%n");
 
         String builtRule = new RuleBuilder("compile import example")
@@ -148,7 +141,7 @@ public class RuleBuilderTestCase {
             .inMethod("prepare")
             .atEntry()
             .nocompile()
-            .addImport("javax.transaction.api")
+            .imports("javax.transaction.api")
             .whenTrue()
             .doAction("org.my.Logger.log(runnableKlazz, System.currentTimeMillis())")
             .build();

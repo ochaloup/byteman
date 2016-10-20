@@ -345,30 +345,44 @@ public class RuleBuilder {
         return when("" + when);
     }
 
+    /**
+     * Definition of bind clause.<br>
+     * When called as
+     * <code>bind("engine:CoordinatorEngine = $0", "identifier:String = engine.getId()")</code>
+     * rule looks<br>
+     * <code>
+     * BIND bind("engine:CoordinatorEngine = $0";
+     * "identifier:String = engine.getId()
+     * </code>
+     * 
+     * @param bindClauses  bind clauses to be part of the rule
+     * @return  this, for having fluent api
+     */
     public RuleBuilder bind(String... bindClauses) {
-        if(this.bindClause == null) this.bindClause = "";
-        for(String bindClause: bindClauses) {
-            if(!this.bindClause.isEmpty() && !this.bindClause.trim().endsWith(";")) {
-                this.bindClause += ";";
-            }
-            this.bindClause += LINEBREAK + bindClause;
-        }
-        return this;
-    }
-
-    public RuleBuilder doAction(String... actions) {
-        if(this.doClause == null) this.doClause = "";
-        for(String action: actions) {
-            if(!this.doClause.isEmpty() && !this.doClause.trim().endsWith(";")) {
-                doClause += ";";
-            }
-            doClause += LINEBREAK + action;
-        }
+        this.bindClause = stringifyClauses(bindClauses);
         return this;
     }
 
     /**
-     * Adding module import definition to the rule.
+     * Definition of actions for the rule.<br>
+     * When called as
+     * <code>doAction("DO debug(\"killing JVM\")", "killJVM()")</code>
+     * rule looks<br>
+     * <code>
+     * DO debug("killing JVM");
+     * killJVM()
+     * </code>
+     * 
+     * @param bindClauses  bind clauses to be part of the rule
+     * @return  this, for having fluent api
+     */
+    public RuleBuilder doAction(String... actions) {
+        this.doClause = stringifyClauses(actions);
+        return this;
+    }
+
+    /**
+     * Setting module import definition for the rule.
      * For module import functionality works you need to use parameter
      * <code>-javaagent modules:</code>. The only provided implementation class
      * which is to manage module imports is
@@ -376,11 +390,15 @@ public class RuleBuilder {
      *
      * @return  this, for having fluent api
      */
-    public RuleBuilder addImport(String... imports) {
-        if(this.importClause == null) this.importClause = "";
+    public RuleBuilder imports(String... imports) {
+        StringBuffer importsBuf = new StringBuffer();
         for(String importString: imports) {
-            importClause += "IMPORT " + importString + LINEBREAK;
+            importsBuf
+                .append("IMPORT ")
+                .append(importString)
+                .append(LINEBREAK);
         }
+        this.importClause = importsBuf.toString();
         return this;
     }
 
@@ -452,7 +470,7 @@ public class RuleBuilder {
         stringBuilder.append(LINEBREAK);
 
         if(bindClause != null) {
-            stringBuilder.append("BIND");
+            stringBuilder.append("BIND ");
             stringBuilder.append(bindClause);
             stringBuilder.append(LINEBREAK);
         }
@@ -461,7 +479,7 @@ public class RuleBuilder {
         stringBuilder.append(ifClause);
         stringBuilder.append(LINEBREAK);
 
-        stringBuilder.append("DO");
+        stringBuilder.append("DO ");
         stringBuilder.append(doClause);
         stringBuilder.append(LINEBREAK);
 
@@ -505,5 +523,21 @@ public class RuleBuilder {
             }
             return sb.toString();
         }
+    }
+
+    private String stringifyClauses(String... clauses) {
+        StringBuffer actionsBuffer = new StringBuffer();
+        boolean isFirstAddition = true;
+        boolean isSemicolon = true;
+
+        for(String clause: clauses) {
+            if(!isFirstAddition && !isSemicolon) actionsBuffer.append(";");
+            if(!isFirstAddition) actionsBuffer.append(LINEBREAK);
+            if(!clause.trim().endsWith(";")) isSemicolon = false;
+            if(isFirstAddition) isFirstAddition = false;
+
+            actionsBuffer.append(clause.trim());
+        }
+        return actionsBuffer.toString();
     }
 }

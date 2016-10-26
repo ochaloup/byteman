@@ -144,12 +144,12 @@ public class Instrumentor
 
         StringBuilder ruleScriptBuilder = new StringBuilder();
         for(String methodName : methodNames) {
-            
+
             if(instrumentedMethods.contains(methodName)) {
               // do not add two identical rules for methods which differ by parameters
               continue;
             }
-            
+
 
             String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_remotetrace_entry";
 
@@ -397,7 +397,7 @@ public class Instrumentor
             .atEntry()
             .helper(BytemanTestHelper.class)
             .ifTrue()
-            .action(actionBuilder.toString());        
+            .action(actionBuilder.toString());
 
         installScript("fault"+className+"."+methodName, builder.build());
     }
@@ -476,7 +476,7 @@ public class Instrumentor
             .helper(BytemanTestHelper.class)
             .ifTrue()
             .action(action);
-        
+
         installScript("crash"+className+"."+methodName+"."+atInjection, builder.build());
     }
 

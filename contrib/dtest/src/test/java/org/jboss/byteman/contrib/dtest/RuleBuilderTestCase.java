@@ -117,7 +117,7 @@ public class RuleBuilderTestCase {
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
-    
+
     @Test
     public void atInvoke() {
         String testRule = String.format(
@@ -128,7 +128,7 @@ public class RuleBuilderTestCase {
             "IF false%n" +
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
-        
+
         String builtRule = new RuleConstructor("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
@@ -136,10 +136,10 @@ public class RuleBuilderTestCase {
             .ifFalse()
             .action("traceStack(\"dump\", 20)")
             .build();
-        
+
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
-    
+
     @Test
     public void afterRead() {
         String testRule = String.format(
@@ -150,7 +150,7 @@ public class RuleBuilderTestCase {
             "IF false%n" +
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
-        
+
         String builtRule = new RuleConstructor("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
@@ -158,10 +158,10 @@ public class RuleBuilderTestCase {
             .ifFalse()
             .action("traceStack(\"dump\", 20)")
             .build();
-        
+
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
-    
+
     @Test
     public void afterWrite() {
         String testRule = String.format(
@@ -172,7 +172,7 @@ public class RuleBuilderTestCase {
             "IF false%n" +
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
-        
+
         String builtRule = new RuleConstructor("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
@@ -180,10 +180,10 @@ public class RuleBuilderTestCase {
             .ifFalse()
             .action("traceStack(\"dump\", 20)")
             .build();
-        
+
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
-    
+
     @Test
     public void atSynchronize() {
         String testRule = String.format(
@@ -194,7 +194,7 @@ public class RuleBuilderTestCase {
             "IF false%n" +
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
-        
+
         String builtRule = new RuleConstructor("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
@@ -202,7 +202,7 @@ public class RuleBuilderTestCase {
             .ifFalse()
             .action("traceStack(\"dump\", 20)")
             .build();
-        
+
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
 

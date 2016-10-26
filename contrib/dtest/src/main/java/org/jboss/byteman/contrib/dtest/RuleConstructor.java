@@ -112,7 +112,7 @@ public final class RuleConstructor {
      * @return this, for having fluent api
      */
     public RuleConstructor.MethodClause onInterface(String className) {
-        return onSpecifier(className, true);        
+        return onSpecifier(className, true);
     }
 
     private RuleConstructor.MethodClause onSpecifier(String className, boolean isInterface) {
@@ -208,7 +208,7 @@ public final class RuleConstructor {
          */
         public RuleConstructor.LocationClause inClassInitMethod(String... argTypes) {
             return inMethod(CLASS_CONSTRUCTOR, argTypes);
-        }   
+        }
     }
 
     public final class LocationClause {
@@ -399,7 +399,7 @@ public final class RuleConstructor {
         public RuleConstructor.ConditionClause afterInvoke(String method, int occurencePosition) {
             return after("INVOKE " + method + " " + occurencePosition);
         }
-        
+
         /**
          * Rule is invoked at entry of synchronization block in the target method.<br>
          * Location specifier is set as <code>AT SYNCHRONIZE</code>.
@@ -409,7 +409,7 @@ public final class RuleConstructor {
         public RuleConstructor.ConditionClause atSynchronize() {
             return at("SYNCHRONIZE");
         }
-        
+
         /**
          * Rule is invoked at point of invocation of method within the trigger method
          * where <code>occurencePosition</code> defines Nth textual occurrence of the method invocation.<br>
@@ -421,7 +421,7 @@ public final class RuleConstructor {
         public RuleConstructor.ConditionClause atSynchronize(int occurencePosition) {
             return at("SYNCHRONIZE " + occurencePosition);
         }
-        
+
         /**
          * Rule is invoked after invocation of method within the trigger method.<br>
          * Location specifier is set as <code>AFTER SYNCHRONIZE</code>.
@@ -431,7 +431,7 @@ public final class RuleConstructor {
         public RuleConstructor.ConditionClause afterSynchronize() {
             return after("SYNCHRONIZE");
         }
-        
+
         /**
          * Rule is invoked after invocation of method within the trigger method
          * where <code>occurencePosition</code> defines Nth textual occurrence of the method invocation.<br>

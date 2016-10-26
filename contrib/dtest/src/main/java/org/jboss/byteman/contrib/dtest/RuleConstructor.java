@@ -53,18 +53,24 @@ public final class RuleConstructor {
     private static final String CONSTRUCTOR_METHOD = "<init>";
     private static final String CLASS_CONSTRUCTOR = "<clinit>";
 
+    private MethodClause methodClause;
+    private LocationClause locationClause;
+    private ConditionClause conditionClause;
+    private ActionClause actionClause;
+    private Builder builderClause;
+
     private String ruleName;
     private String className;
     private boolean isInterface;
     private boolean isIncludeSubclases;
     private String methodName;
     private String helperName;
-    private String whereClause = "AT ENTRY";
-    private String bindClause;
-    private String ifClause = "true";
-    private String doClause;
-    private String importClause;
-    private String compileClause;
+    private String where = "AT ENTRY";
+    private String bind;
+    private String when = "true";
+    private String action;
+    private String imports;
+    private String compile;
 
     /**
      * Rule builder initialization.
@@ -73,6 +79,51 @@ public final class RuleConstructor {
      */
     public RuleConstructor(String ruleName) {
         this.ruleName = ruleName;
+    }
+
+    /**
+     * To get to specific point of builder flow api.
+     * You will be able to set <code>onMethod</code> rule specifiers.
+     */
+    public MethodClause getMethodClause() {
+        return methodClause;
+    }
+
+    /**
+     * To get to specific point of builder flow api.
+     * You will be able to set <code>at</code> rule specifiers.
+     */
+    public LocationClause getLocationClause() {
+        return locationClause;
+    }
+
+    /**
+     * To get to specific point of builder flow api.
+     * You will be able to set <code>when</code> rule specifiers.
+     */
+    public ConditionClause getConditionClause() {
+        return conditionClause;
+    }
+
+    /**
+     * To get to specific point of builder flow api.
+     * You will be able to set <code>action</code> rule specifiers.
+     */
+    public ActionClause getActionClause() {
+        return actionClause;
+    }
+
+    /**
+     * Generate the rule as a string.
+     *
+     * @return  rule in string form
+     */
+    public String build() {
+        if(this.builderClause == null) {
+            throw new IllegalStateException("Not all data for builder was specified. " +
+                "Current rule shape is\n" + new Builder().build());
+        }
+        return this.builderClause.build();
     }
 
     /**
@@ -118,7 +169,8 @@ public final class RuleConstructor {
     private RuleConstructor.MethodClause onSpecifier(String className, boolean isInterface) {
         this.className = className;
         this.isInterface = isInterface;
-        return this.new MethodClause();
+        if(this.methodClause == null) this.methodClause = this.new MethodClause();
+        return this.methodClause;
     }
 
     public final class MethodClause {
@@ -144,7 +196,10 @@ public final class RuleConstructor {
          */
         public RuleConstructor.LocationClause inMethod(String methodName) {
             RuleConstructor.this.methodName = methodName;
-            return RuleConstructor.this.new LocationClause();
+            if(RuleConstructor.this.locationClause == null) {
+                RuleConstructor.this.locationClause = RuleConstructor.this.new LocationClause();
+            }
+            return RuleConstructor.this.locationClause;
         }
 
         /**
@@ -166,7 +221,10 @@ public final class RuleConstructor {
          */
         public RuleConstructor.LocationClause inMethod(String methodName, String... argTypes) {
             RuleConstructor.this.methodName = methodName + "(" + stringJoin(",", argTypes) + ")";
-            return RuleConstructor.this.new LocationClause();
+            if(RuleConstructor.this.locationClause == null) {
+                RuleConstructor.this.locationClause = RuleConstructor.this.new LocationClause();
+            }
+            return RuleConstructor.this.locationClause;
         }
 
         /**
@@ -209,6 +267,13 @@ public final class RuleConstructor {
         public RuleConstructor.LocationClause inClassInitMethod(String... argTypes) {
             return inMethod(CLASS_CONSTRUCTOR, argTypes);
         }
+
+        /**
+         * Returning this {@link RuleConstructor} - parent in the flow api. 
+         */
+        public RuleConstructor parent() {
+            return RuleConstructor.this;
+        }
     }
 
     public final class LocationClause {
@@ -220,8 +285,11 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.ConditionClause where(String where) {
-            whereClause = where;
-            return RuleConstructor.this.new ConditionClause();
+            RuleConstructor.this.where = where;
+            if(RuleConstructor.this.conditionClause == null) {
+                RuleConstructor.this.conditionClause = RuleConstructor.this.new ConditionClause();
+            }
+            return RuleConstructor.this.conditionClause;
         }
 
         /**
@@ -479,6 +547,13 @@ public final class RuleConstructor {
             return at("EXCEPTION EXIT");
         }
 
+        /**
+         * Returning this {@link RuleConstructor} - parent in the flow api. 
+         */
+        public RuleConstructor parent() {
+            return RuleConstructor.this;
+        }
+
         public RuleConstructor.ConditionClause at(String at) {
             return where("AT " + at);
         }
@@ -525,7 +600,7 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.ConditionClause bind(String... bindClauses) {
-            RuleConstructor.this.bindClause = stringifyClauses(bindClauses);
+            RuleConstructor.this.bind = stringifyClauses(bindClauses);
             return this;
         }
 
@@ -546,7 +621,7 @@ public final class RuleConstructor {
                     .append(importString)
                     .append(LINEBREAK);
             }
-            RuleConstructor.this.importClause = importsBuf.toString();
+            RuleConstructor.this.imports = importsBuf.toString();
             return this;
         }
 
@@ -557,7 +632,7 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.ConditionClause compile() {
-            RuleConstructor.this.compileClause = "COMPILE";
+            RuleConstructor.this.compile = "COMPILE";
             return this;
         }
 
@@ -571,7 +646,7 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.ConditionClause nocompile() {
-            RuleConstructor.this.compileClause = "NOCOMPILE";
+            RuleConstructor.this.compile = "NOCOMPILE";
             return this;
         }
 
@@ -584,8 +659,11 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.ActionClause when(String condition) {
-            ifClause = condition;
-            return RuleConstructor.this.new ActionClause();
+            RuleConstructor.this.when = condition;
+            if(RuleConstructor.this.actionClause == null) {
+                RuleConstructor.this.actionClause = RuleConstructor.this.new ActionClause();
+            }
+            return RuleConstructor.this.actionClause;
         }
 
         /**
@@ -607,6 +685,13 @@ public final class RuleConstructor {
         public RuleConstructor.ActionClause ifFalse() {
             return when("false");
         }
+
+        /**
+         * Returning this {@link RuleConstructor} - parent in the flow api. 
+         */
+        public RuleConstructor parent() {
+            return RuleConstructor.this;
+        }
     }
 
     public final class ActionClause {
@@ -624,8 +709,18 @@ public final class RuleConstructor {
          * @return  this, for having fluent api
          */
         public RuleConstructor.Builder action(String... actions) {
-            RuleConstructor.this.doClause = stringifyClauses(actions);
-            return RuleConstructor.this.new Builder();
+            RuleConstructor.this.action = stringifyClauses(actions);
+            if(RuleConstructor.this.builderClause == null) {
+                RuleConstructor.this.builderClause = RuleConstructor.this.new Builder();
+            }
+            return RuleConstructor.this.builderClause;
+        }
+
+        /**
+         * Returning this {@link RuleConstructor} - parent in the flow api. 
+         */
+        public RuleConstructor parent() {
+            return RuleConstructor.this;
         }
     }
 
@@ -657,7 +752,7 @@ public final class RuleConstructor {
             stringBuilder.append(methodName);
             stringBuilder.append(LINEBREAK);
 
-            stringBuilder.append(whereClause);
+            stringBuilder.append(where);
             stringBuilder.append(LINEBREAK);
 
             if(helperName != null) {
@@ -666,27 +761,27 @@ public final class RuleConstructor {
                 stringBuilder.append(LINEBREAK);
             }
 
-            if(importClause != null) {
-                stringBuilder.append(importClause);
+            if(imports != null) {
+                stringBuilder.append(imports);
             }
 
-            if(compileClause != null) {
-                stringBuilder.append(compileClause);
+            if(compile != null) {
+                stringBuilder.append(compile);
                 stringBuilder.append(LINEBREAK);
             }
 
-            if(bindClause != null) {
+            if(bind != null) {
                 stringBuilder.append("BIND ");
-                stringBuilder.append(bindClause);
+                stringBuilder.append(bind);
                 stringBuilder.append(LINEBREAK);
             }
 
             stringBuilder.append("IF ");
-            stringBuilder.append(ifClause);
+            stringBuilder.append(when);
             stringBuilder.append(LINEBREAK);
 
             stringBuilder.append("DO ");
-            stringBuilder.append(doClause);
+            stringBuilder.append(action);
             stringBuilder.append(LINEBREAK);
 
             stringBuilder.append("ENDRULE");
@@ -695,9 +790,16 @@ public final class RuleConstructor {
             return stringBuilder.toString();
         }
 
-        String getRuleName() {
-            return RuleConstructor.this.ruleName;
+        /**
+         * Returning this {@link RuleConstructor} - parent in the flow api. 
+         */
+        public RuleConstructor parent() {
+            return RuleConstructor.this;
         }
+    }
+
+    String getRuleName() {
+        return RuleConstructor.this.ruleName;
     }
 
     private String stringJoin(String join, String... strings) {

@@ -229,6 +229,31 @@ public class InstrumentorTest {
                 pattern.matcher(ruleString).matches());
     }
 
+    @Test
+    public void ruleInstall() throws Exception {
+        File ruleFile = tmpDir.newFile("installRule.btm");
+        instrumentor.setRedirectedSubmissionsFile(ruleFile);
+        
+        Class exception = NullPointerException.class;
+        Object[] args = {"hello"};
+        instrumentor.installRule(new RuleConstructor("install rule")
+            .onClass(clazz).inMethod(method).atEntry().helper(BytemanTestHelper.class).ifTrue()
+            .action("throw new " + exception.getName() + "(\"" + args[0] + "\")")
+            .parent());
+        
+        String ruleString = readFileToString(ruleFile);
+        
+        Pattern pattern = new RegexRuleBuilder()
+                .clazz(clazzName)
+                .method(method)
+                .ifTrue()
+                .doo("throw new " + exception.getName() + "(\"" + args[0])
+                .build();
+        
+        Assert.assertTrue("Pattern\n" + pattern.pattern() + "\ndoes not match rule\n" + ruleString,
+                pattern.matcher(ruleString).matches());
+    }
+
     private String readFileToString(File file) throws FileNotFoundException {
         Scanner in = null;
         try {

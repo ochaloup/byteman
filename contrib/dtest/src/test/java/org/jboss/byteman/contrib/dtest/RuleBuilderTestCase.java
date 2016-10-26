@@ -281,4 +281,30 @@ public class RuleBuilderTestCase {
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
     }
+
+    @Test
+    public void incompleteRule() {
+        String incompleteRule = String.format(
+            "RULE compile import example%n" +
+            "CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine%n" +
+            "METHOD prepare%n" +
+            "AT ENTRY%n" +
+            "NOCOMPILE");
+
+        RuleConstructor builder = new RuleConstructor("compile import example")
+            .onClass("com.arjuna.wst11.messaging.engines.CoordinatorEngine")
+            .inMethod("prepare")
+            .atEntry()
+            .nocompile()
+            .parent();
+
+        try {
+            builder.build();
+        } catch (IllegalStateException ise) {
+            Assert.assertTrue("Caught illegal state exception " + ise + " should contain content of incomplete rule",
+                    ise.getMessage().contains(incompleteRule));
+            return;
+        }
+        Assert.fail("IllegalStateException on incomplete rule was expected");
+    }
 }

@@ -247,6 +247,7 @@ public class InstrumentorTest {
                 .clazz(clazzName)
                 .method(method)
                 .ifTrue()
+                .atEntry()
                 .doo("throw new " + exception.getName() + "(\"" + args[0])
                 .build();
         
@@ -321,8 +322,8 @@ public class InstrumentorTest {
                 "^RULE.*" +
                 "%s%s.*" +
                 "METHOD%s.*" +
-                "HELPER " + BytemanTestHelper.class.getName() + ".*" +
                 "%s.*" + // AT
+                "HELPER " + BytemanTestHelper.class.getName() + ".*" +
                 "%s.*" + // IF
                 "%s.*" + // DO
                 "ENDRULE.*",

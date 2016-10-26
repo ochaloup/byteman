@@ -41,7 +41,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .atEntry()
             .when("NOT flagged(\"commitFlag\")")
-            .action("throw new javax.transaction.xa.XAResource(100)")
+            .doAction("throw new javax.transaction.xa.XAResource(100)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, rule);
@@ -64,7 +64,7 @@ public class RuleBuilderTestCase {
             .inMethod("rollback")
             .atExit()
             .when("NOT flagged(\"commitFlag\")")
-            .action("throw new javax.transaction.xa.XAResource(100)")
+            .doAction("throw new javax.transaction.xa.XAResource(100)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, rule);
@@ -91,7 +91,7 @@ public class RuleBuilderTestCase {
             .helper("org.jboss.MyHelper")
             .bind("buffer = $0", "size = $1")
             .when("$1 < 100")
-            .action("createCountDown(buffer, size - 1)");
+            .doAction("createCountDown(buffer, size - 1)");
 
         Assert.assertEquals("The rule does not match the built one", testRule, builder.build());
     }
@@ -112,7 +112,7 @@ public class RuleBuilderTestCase {
             .inMethod("State commit()")
             .atLine(324)
             .ifFalse()
-            .action("traceStack(\"dump\", 20)")
+            .doAction("traceStack(\"dump\", 20)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -134,7 +134,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .atInvoke("sendCommit")
             .ifFalse()
-            .action("traceStack(\"dump\", 20)")
+            .doAction("traceStack(\"dump\", 20)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -156,7 +156,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .afterRead("$current")
             .ifFalse()
-            .action("traceStack(\"dump\", 20)")
+            .doAction("traceStack(\"dump\", 20)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -178,7 +178,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .afterWrite("$current")
             .ifFalse()
-            .action("traceStack(\"dump\", 20)")
+            .doAction("traceStack(\"dump\", 20)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -200,7 +200,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .atSynchronize()
             .ifFalse()
-            .action("traceStack(\"dump\", 20)")
+            .doAction("traceStack(\"dump\", 20)")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
@@ -223,7 +223,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit()")
             .atThrow()
             .ifTrue()
-            .action(
+            .doAction(
                 "System.out.println(\"One ring\")",
                 "System.out.println(\"rule them all\")")
             .build();
@@ -248,7 +248,7 @@ public class RuleBuilderTestCase {
             .inMethod("commit")
             .where("AT READ state")
             .ifTrue()
-            .action(
+            .doAction(
                 "debug(\"throwing wrong state\")",
                 "throw new WrongStateException()")
             .build();
@@ -276,7 +276,7 @@ public class RuleBuilderTestCase {
             .nocompile()
             .imports("javax.transaction.api")
             .ifTrue()
-            .action("org.my.Logger.log(runnableKlazz, System.currentTimeMillis())")
+            .doAction("org.my.Logger.log(runnableKlazz, System.currentTimeMillis())")
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);

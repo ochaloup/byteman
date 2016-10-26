@@ -708,7 +708,7 @@ public final class RuleConstructor {
          * @param bindClauses  bind clauses to be part of the rule
          * @return  this, for having fluent api
          */
-        public RuleConstructor.Builder action(String... actions) {
+        public RuleConstructor.Builder doAction(String... actions) {
             RuleConstructor.this.action = stringifyClauses(actions);
             if(RuleConstructor.this.builderClause == null) {
                 RuleConstructor.this.builderClause = RuleConstructor.this.new Builder();

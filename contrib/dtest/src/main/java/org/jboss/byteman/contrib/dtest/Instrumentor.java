@@ -165,7 +165,7 @@ public class Instrumentor
                 .atEntry()
                 .helper(BytemanTestHelper.class)
                 .ifTrue()
-                .action("setTriggering(false), debug(\"firing "+ruleName+"\", $0), remoteTrace(\""+className+"\", \""+methodName+"\", $*)");
+                .doAction("setTriggering(false), debug(\"firing "+ruleName+"\", $0), remoteTrace(\""+className+"\", \""+methodName+"\", $*)");
             ruleScriptBuilder.append(builder.build());
 
             instrumentedMethods.add(methodName);
@@ -288,7 +288,7 @@ public class Instrumentor
             .at(atInjection)
             .helper(BytemanTestHelper.class)
             .when(condition)
-            .action(action);
+            .doAction(action);
 
         installScript("onCall"+className+"."+methodName+"."+atInjection, builder.build());
     }
@@ -343,7 +343,7 @@ public class Instrumentor
            .where(where)
            .helper(BytemanTestHelper.class)
            .when(condition)
-           .action(action);
+           .doAction(action);
 
         installScript("onCall"+className+"."+methodName+"."+where, builder.build());
     }
@@ -397,7 +397,7 @@ public class Instrumentor
             .atEntry()
             .helper(BytemanTestHelper.class)
             .ifTrue()
-            .action(actionBuilder.toString());
+            .doAction(actionBuilder.toString());
 
         installScript("fault"+className+"."+methodName, builder.build());
     }
@@ -475,7 +475,7 @@ public class Instrumentor
             .at(atInjection)
             .helper(BytemanTestHelper.class)
             .ifTrue()
-            .action(action);
+            .doAction(action);
 
         installScript("crash"+className+"."+methodName+"."+atInjection, builder.build());
     }

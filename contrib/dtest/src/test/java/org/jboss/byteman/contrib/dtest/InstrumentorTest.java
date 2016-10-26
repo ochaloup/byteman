@@ -238,7 +238,7 @@ public class InstrumentorTest {
         Object[] args = {"hello"};
         instrumentor.installRule(new RuleConstructor("install rule")
             .onClass(clazz).inMethod(method).atEntry().helper(BytemanTestHelper.class).ifTrue()
-            .action("throw new " + exception.getName() + "(\"" + args[0] + "\")")
+            .doAction("throw new " + exception.getName() + "(\"" + args[0] + "\")")
             .parent());
         
         String ruleString = readFileToString(ruleFile);

@@ -153,17 +153,21 @@ public class Instrumentor
 
             String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_remotetrace_entry";
 
-            RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+            RuleConstructor.MethodClause ruleBuilderMethod;
             if(isInterface(className)) {
-                ruleBuilder.onInterface(className);
+                ruleBuilderMethod = new RuleConstructor(ruleName).onInterface(className);
             } else {
-                ruleBuilder.onClass(className);
+                ruleBuilderMethod = new RuleConstructor(ruleName).onClass(className);
             }
-            ruleBuilder.inMethod(methodName).atEntry();
-            ruleBuilder.usingHelper(BytemanTestHelper.class);
-            ruleBuilder.doAction("setTriggering(false), debug(\"firing "+ruleName+"\", $0), remoteTrace(\""+className+"\", \""+methodName+"\", $*)");
-            ruleScriptBuilder.append(ruleBuilder.toString());
-            
+
+            RuleConstructor.Builder builder = ruleBuilderMethod
+                .inMethod(methodName)
+                .atEntry()
+                .helper(BytemanTestHelper.class)
+                .ifTrue()
+                .action("setTriggering(false), debug(\"firing "+ruleName+"\", $0), remoteTrace(\""+className+"\", \""+methodName+"\", $*)");
+            ruleScriptBuilder.append(builder.build());
+
             instrumentedMethods.add(methodName);
         }
 
@@ -273,18 +277,20 @@ public class Instrumentor
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+atInjection;
 
-        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        RuleConstructor.MethodClause ruleBuilderMethod;
         if(isInterface(className)) {
-            ruleBuilder.onInterface(className);
+            ruleBuilderMethod = new RuleConstructor(ruleName).onInterface(className);
         } else {
-            ruleBuilder.onClass(className);
+            ruleBuilderMethod = new RuleConstructor(ruleName).onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(atInjection);
-        ruleBuilder.usingHelper(BytemanTestHelper.class);
-        ruleBuilder.when(condition).doAction(action);
+        RuleConstructor.Builder builder = ruleBuilderMethod
+            .inMethod(methodName)
+            .at(atInjection)
+            .helper(BytemanTestHelper.class)
+            .when(condition)
+            .action(action);
 
-        String ruleText = ruleBuilder.toString();
-        installScript("onCall"+className+"."+methodName+"."+atInjection, ruleText);
+        installScript("onCall"+className+"."+methodName+"."+atInjection, builder.build());
     }
 
 
@@ -326,18 +332,20 @@ public class Instrumentor
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+where;
 
-        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        RuleConstructor.MethodClause ruleBuilderMethod;
         if(isInterface(className)) {
-            ruleBuilder.onInterface(className);
+            ruleBuilderMethod = new RuleConstructor(ruleName).onInterface(className);
         } else {
-            ruleBuilder.onClass(className);
+            ruleBuilderMethod= new RuleConstructor(ruleName).onClass(className);
         }
-        ruleBuilder.inMethod(methodName).where(where);
-        ruleBuilder.usingHelper(BytemanTestHelper.class);
-        ruleBuilder.when(condition).doAction(action);
+        RuleConstructor.Builder builder = ruleBuilderMethod
+           .inMethod(methodName)
+           .where(where)
+           .helper(BytemanTestHelper.class)
+           .when(condition)
+           .action(action);
 
-        String ruleText = ruleBuilder.toString();
-        installScript("onCall"+className+"."+methodName+"."+where, ruleText);
+        installScript("onCall"+className+"."+methodName+"."+where, builder.build());
     }
 
     /**
@@ -378,17 +386,20 @@ public class Instrumentor
         }
         actionBuilder.append(")"+"\n");
 
-        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        RuleConstructor.MethodClause ruleBuilderMethod;
         if(isInterface(className)) {
-            ruleBuilder.onInterface(className);
+            ruleBuilderMethod= new RuleConstructor(ruleName).onInterface(className);
         } else {
-            ruleBuilder.onClass(className);
+            ruleBuilderMethod= new RuleConstructor(ruleName).onClass(className);
         }
-        ruleBuilder.inMethod(methodName).atEntry();
-        ruleBuilder.usingHelper(BytemanTestHelper.class);
-        ruleBuilder.whenTrue().doAction(actionBuilder.toString());        
+        RuleConstructor.Builder builder = ruleBuilderMethod
+            .inMethod(methodName)
+            .atEntry()
+            .helper(BytemanTestHelper.class)
+            .ifTrue()
+            .action(actionBuilder.toString());        
 
-        installScript("fault"+className+"."+methodName, ruleBuilder.toString());
+        installScript("fault"+className+"."+methodName, builder.build());
     }
 
     /**
@@ -453,17 +464,20 @@ public class Instrumentor
 
         String action = "debug(\"killing JVM\"), killJVM()";
 
-        RuleBuilder ruleBuilder = new RuleBuilder(ruleName);
+        RuleConstructor.MethodClause ruleBuilderMethod;
         if(isInterface(className)) {
-            ruleBuilder.onInterface(className);
+            ruleBuilderMethod = new RuleConstructor(ruleName).onInterface(className);
         } else {
-            ruleBuilder.onClass(className);
+            ruleBuilderMethod = new RuleConstructor(ruleName).onClass(className);
         }
-        ruleBuilder.inMethod(methodName).at(atInjection);
-        ruleBuilder.usingHelper(BytemanTestHelper.class);
-        ruleBuilder.whenTrue().doAction(action);
+        RuleConstructor.Builder builder = ruleBuilderMethod
+            .inMethod(methodName)
+            .at(atInjection)
+            .helper(BytemanTestHelper.class)
+            .ifTrue()
+            .action(action);
         
-        installScript("crash"+className+"."+methodName+"."+atInjection, ruleBuilder.toString());
+        installScript("crash"+className+"."+methodName+"."+atInjection, builder.build());
     }
 
     /**
@@ -506,13 +520,13 @@ public class Instrumentor
     }
 
     /**
-     * Installing rule based on definition available by building {@link RuleBuilder}.
+     * Installing rule based on definition available by building {@link RuleConstructor}.
      *
      * @param builder  rule builder with a rule definition to be installed as script
      * @return  name of script that rule was installed under
      * @throws Exception  in case of failure
      */
-    public String installRule(RuleBuilder builder) throws Exception {
+    public String installRule(RuleConstructor.Builder builder) throws Exception {
         String scriptName = builder.getRuleName();
         installScript(scriptName, builder.build());
         return scriptName;

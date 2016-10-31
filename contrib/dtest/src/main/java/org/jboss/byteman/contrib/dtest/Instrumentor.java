@@ -153,19 +153,17 @@ public class Instrumentor
 
             String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_remotetrace_entry";
 
-            RuleConstructor builder = new RuleConstructor(ruleName);
-            if(isInterface(className)) {
-                builder.onInterface(className);
-            } else {
-                builder.onClass(className);
-            }
+            RuleConstructor.ClassClause builderClassClause = RuleConstructor.createRule(ruleName);
+            RuleConstructor.MethodClause builderMethodClause = 
+                    isInterface(className) ? builderClassClause.onInterface(className) : builderClassClause.onClass(className);
 
-            builder.getMethodClause()
+            RuleConstructor builder = builderMethodClause
                 .inMethod(methodName)
                 .atEntry()
                 .helper(BytemanTestHelper.class)
                 .ifTrue()
                 .doAction("setTriggering(false), debug(\"firing "+ruleName+"\", $0), remoteTrace(\""+className+"\", \""+methodName+"\", $*)");
+
             ruleScriptBuilder.append(builder.build());
 
             instrumentedMethods.add(methodName);
@@ -277,13 +275,11 @@ public class Instrumentor
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+atInjection;
 
-        RuleConstructor builder = new RuleConstructor(ruleName);
-        if(isInterface(className)) {
-            builder.onInterface(className);
-        } else {
-            builder.onClass(className);
-        }
-        builder.getMethodClause()
+        RuleConstructor.ClassClause builderClassClause = RuleConstructor.createRule(ruleName);
+        RuleConstructor.MethodClause builderMethodClause =
+                isInterface(className) ? builderClassClause.onInterface(className) : builderClassClause.onClass(className);
+
+        RuleConstructor builder = builderMethodClause
             .inMethod(methodName)
             .at(atInjection)
             .helper(BytemanTestHelper.class)
@@ -332,13 +328,11 @@ public class Instrumentor
     {
         String ruleName = this.getClass().getCanonicalName()+"_"+className+"_"+methodName+"_injectionat"+where;
 
-        RuleConstructor builder = new RuleConstructor(ruleName);
-        if(isInterface(className)) {
-            builder.onInterface(className);
-        } else {
-            builder.onClass(className);
-        }
-        builder.getMethodClause()
+        RuleConstructor.ClassClause builderClassClause = RuleConstructor.createRule(ruleName);
+        RuleConstructor.MethodClause builderMethodClause =
+                isInterface(className) ? builderClassClause.onInterface(className) : builderClassClause.onClass(className);
+
+        RuleConstructor builder = builderMethodClause
            .inMethod(methodName)
            .where(where)
            .helper(BytemanTestHelper.class)
@@ -386,13 +380,11 @@ public class Instrumentor
         }
         actionBuilder.append(")"+"\n");
 
-        RuleConstructor builder = new RuleConstructor(ruleName);
-        if(isInterface(className)) {
-            builder.onInterface(className);
-        } else {
-            builder.onClass(className);
-        }
-        builder.getMethodClause()
+        RuleConstructor.ClassClause builderClassClause = RuleConstructor.createRule(ruleName);
+        RuleConstructor.MethodClause builderMethodClause =
+                isInterface(className) ? builderClassClause.onInterface(className) : builderClassClause.onClass(className);
+
+        RuleConstructor builder = builderMethodClause
             .inMethod(methodName)
             .atEntry()
             .helper(BytemanTestHelper.class)
@@ -464,13 +456,11 @@ public class Instrumentor
 
         String action = "debug(\"killing JVM\"), killJVM()";
 
-        RuleConstructor builder = new RuleConstructor(ruleName);
-        if(isInterface(className)) {
-            builder.onInterface(className);
-        } else {
-            builder.onClass(className);
-        }
-        builder.getMethodClause()
+        RuleConstructor.ClassClause builderClassClause = RuleConstructor.createRule(ruleName);
+        RuleConstructor.MethodClause builderMethodClause =
+                isInterface(className) ? builderClassClause.onInterface(className) : builderClassClause.onClass(className);
+
+        RuleConstructor builder = builderMethodClause
             .inMethod(methodName)
             .at(atInjection)
             .helper(BytemanTestHelper.class)

@@ -236,10 +236,9 @@ public class InstrumentorTest {
         
         Class exception = NullPointerException.class;
         Object[] args = {"hello"};
-        instrumentor.installRule(new RuleConstructor("install rule")
+        instrumentor.installRule(RuleConstructor.createRule("install rule")
             .onClass(clazz).inMethod(method).atEntry().helper(BytemanTestHelper.class).ifTrue()
-            .doAction("throw new " + exception.getName() + "(\"" + args[0] + "\")")
-            .parent());
+            .doAction("throw new " + exception.getName() + "(\"" + args[0] + "\")"));
         
         String ruleString = readFileToString(ruleFile);
         

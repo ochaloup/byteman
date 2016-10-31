@@ -36,7 +36,7 @@ public class RuleBuilderTestCase {
             "DO throw new javax.transaction.xa.XAResource(100)%n" +
             "ENDRULE%n");
 
-        String rule = new RuleConstructor("basic rule")
+        String rule = RuleConstructor.createRule("basic rule")
             .onClass("javax.transaction.xa.XAResource")
             .inMethod("commit")
             .atEntry()
@@ -58,7 +58,7 @@ public class RuleBuilderTestCase {
             "DO throw new javax.transaction.xa.XAResource(100)%n" +
             "ENDRULE%n");
 
-        String rule = new RuleConstructor("basic rule")
+        String rule = RuleConstructor.createRule("basic rule")
             .onClass("javax.transaction.xa.XAResource")
             .includeSubclases()
             .inMethod("rollback")
@@ -84,7 +84,7 @@ public class RuleBuilderTestCase {
             "DO createCountDown(buffer, size - 1)%n" +
             "ENDRULE%n");
 
-        RuleConstructor.Builder builder = new RuleConstructor("bind rule")
+        RuleConstructor builder = RuleConstructor.createRule("bind rule")
             .onClass("org.my.BoundedBuffer")
             .inConstructor("int")
             .atExit()
@@ -107,7 +107,7 @@ public class RuleBuilderTestCase {
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("commit with no arguments on wst11 coordinator engine")
+        String builtRule = RuleConstructor.createRule("commit with no arguments on wst11 coordinator engine")
             .onClass("com.arjuna.wst11.messaging.engines.CoordinatorEngine")
             .inMethod("State commit()")
             .atLine(324)
@@ -129,7 +129,7 @@ public class RuleBuilderTestCase {
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("at invoke")
+        String builtRule = RuleConstructor.createRule("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
             .atInvoke("sendCommit")
@@ -151,7 +151,7 @@ public class RuleBuilderTestCase {
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("at invoke")
+        String builtRule = RuleConstructor.createRule("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
             .afterRead("$current")
@@ -173,7 +173,7 @@ public class RuleBuilderTestCase {
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("at invoke")
+        String builtRule = RuleConstructor.createRule("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
             .afterWrite("$current")
@@ -195,7 +195,7 @@ public class RuleBuilderTestCase {
             "DO traceStack(\"dump\", 20)%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("at invoke")
+        String builtRule = RuleConstructor.createRule("at invoke")
             .onClass("CoordinatorEngine")
             .inMethod("commit")
             .atSynchronize()
@@ -218,7 +218,7 @@ public class RuleBuilderTestCase {
             "System.out.println(\"rule them all\")%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("commit with no arguments on any engine")
+        String builtRule = RuleConstructor.createRule("commit with no arguments on any engine")
             .onInterface("com.arjuna.wst11.messaging.engines.Engine")
             .inMethod("commit()")
             .atThrow()
@@ -243,7 +243,7 @@ public class RuleBuilderTestCase {
             "throw new WrongStateException()%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("countdown at commit")
+        String builtRule = RuleConstructor.createRule("countdown at commit")
             .onClass("com.arjuna.wst11.messaging.engines.CoordinatorEngine")
             .inMethod("commit")
             .where("AT READ state")
@@ -269,7 +269,7 @@ public class RuleBuilderTestCase {
             "DO org.my.Logger.log(runnableKlazz, System.currentTimeMillis())%n" +
             "ENDRULE%n");
 
-        String builtRule = new RuleConstructor("compile import example")
+        String builtRule = RuleConstructor.createRule("compile import example")
             .onClass("com.arjuna.wst11.messaging.engines.CoordinatorEngine")
             .inMethod("prepare")
             .atEntry()
@@ -280,31 +280,5 @@ public class RuleBuilderTestCase {
             .build();
 
         Assert.assertEquals("The rule does not match the built one", testRule, builtRule);
-    }
-
-    @Test
-    public void incompleteRule() {
-        String incompleteRule = String.format(
-            "RULE compile import example%n" +
-            "CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine%n" +
-            "METHOD prepare%n" +
-            "AT ENTRY%n" +
-            "NOCOMPILE");
-
-        RuleConstructor builder = new RuleConstructor("compile import example")
-            .onClass("com.arjuna.wst11.messaging.engines.CoordinatorEngine")
-            .inMethod("prepare")
-            .atEntry()
-            .nocompile()
-            .parent();
-
-        try {
-            builder.build();
-        } catch (IllegalStateException ise) {
-            Assert.assertTrue("Caught illegal state exception " + ise + " should contain content of incomplete rule",
-                    ise.getMessage().contains(incompleteRule));
-            return;
-        }
-        Assert.fail("IllegalStateException on incomplete rule was expected");
     }
 }

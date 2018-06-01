@@ -41,9 +41,9 @@ import java.util.jar.JarFile;
  * agent class supplied at JVM startup to install byteman package bytecode transformer
  */
 public class Main {
-    public static boolean firstTime = true;
     public final static String BYTEMAN_PREFIX = "org.jboss.byteman.";
     public final static String BYTEMAN_AGENT_LOADED = "org.jboss.byteman.agent.loaded";
+    public static boolean firstTime = Boolean.getBoolean(BYTEMAN_AGENT_LOADED);
 
     public static void premain(String args, Instrumentation inst)
             throws Exception
